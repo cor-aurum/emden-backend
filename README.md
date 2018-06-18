@@ -1,0 +1,3 @@
+# suche-backend
+
+Die Suchapplikation
