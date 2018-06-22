@@ -5,7 +5,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
 public class Result {
-	private String titel;
+	private String title;
 	private String text;
 	private String url;
 	private String urltext;
@@ -15,18 +15,25 @@ public class Result {
 	}
 
 	public Result(String titel, String text, String url, String urltext) {
-		this.titel = titel;
+		this.title = titel;
 		this.text = text;
 		this.url = url;
 		this.urltext = urltext;
 	}
 
-	public String getTitel() {
-		return titel;
+	public Result(JsonObject json) {
+		this.title = json.getString("Title","");
+		this.text = json.getString("Text","");
+		this.url = json.getString("Url","");
+		this.urltext = json.getString("Urltext","");
 	}
 
-	public void setTitel(String titel) {
-		this.titel = titel;
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getText() {
@@ -55,7 +62,7 @@ public class Result {
 
 	protected JsonObject getData() {
 		JsonObjectBuilder builder = Json.createObjectBuilder();
-		builder.add("Title", titel);
+		builder.add("Title", title);
 		builder.add("Text", text);
 		builder.add("Url", url);
 		builder.add("Urltext", urltext);

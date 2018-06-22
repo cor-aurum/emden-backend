@@ -6,8 +6,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import de.recondita.emden.appearance.Result;
 import de.recondita.emden.appearance.ResultList;
+import de.recondita.emden.data.search.ElasticsearchWrapper;
 
 @Path("/search")
 public class SimpleSearchResource {
@@ -15,7 +15,7 @@ public class SimpleSearchResource {
 	@GET
 	@Produces("application/json")
 	public String getSearchResult(@DefaultValue("42") @QueryParam("query") String query) {
-		ResultList l = new ResultList(new Result[] {new Result(query+" Titel1","Text1"), new Result(query+" Titel2","Text2")});
+		ResultList l = new ElasticsearchWrapper().simpleSearch(query);
 		return l.getJson().toString();
 	}
 }

@@ -8,12 +8,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import de.recondita.emden.data.PathProvider;
+
 @Path("/logo")
 public class LogoResource {
 	@GET
 	@Produces("image/png")
 	public Response getSearchResult() {
-		File file = new File("/home/felix/git/suche-backend/WebContent/recondita.png");
+		File file = PathProvider.getInstance().getLogo();
 		ResponseBuilder resp =Response.ok(file);
 		//resp.header("Content-Disposition", "attachment;filename=logo.png");
 		return resp.build();
