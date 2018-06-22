@@ -40,7 +40,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		}
 		String resultString = "";
 		try {
-			resultString = get(esUrl + "/_search?q=" + query);
+			resultString = get(esUrl + "/_search?q=*" + query+"*");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
