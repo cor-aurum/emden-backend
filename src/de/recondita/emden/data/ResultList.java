@@ -1,4 +1,4 @@
-package de.recondita.emden.appearance;
+package de.recondita.emden.data;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;

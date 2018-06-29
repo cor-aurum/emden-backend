@@ -6,10 +6,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.json.Json;
@@ -18,8 +17,8 @@ import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 
-import de.recondita.emden.appearance.Result;
-import de.recondita.emden.appearance.ResultList;
+import de.recondita.emden.data.Result;
+import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.Settings;
 
 public class ElasticsearchWrapper implements SearchWrapper {
@@ -73,6 +72,35 @@ public class ElasticsearchWrapper implements SearchWrapper {
 			response.append(input);
 		in.close();
 		return response.toString();
+	}
+	
+	private String post(String url, String json) throws IOException {
+		System.out.println(json);
+		byte[] payload=json.getBytes(StandardCharsets.UTF_8);
+		URL u = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) u.openConnection();
+		con.setRequestMethod("POST");
+		con.setDoOutput(true);
+		con.setFixedLengthStreamingMode(payload.length);
+		con.setRequestProperty("Content-Type", "application/json; charset=UTF-8"); 
+		con.getOutputStream().write(payload);
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String input;
+		StringBuffer response = new StringBuffer();
+		while ((input = in.readLine()) != null)
+			response.append(input);
+		in.close();
+		return response.toString();
+	}
+
+	@Override
+	public void pushResult(Result r) {
+		try {
+			System.out.println(post(esUrl+"/logs/emden", r.getData().toString()));
+		} catch (IOException e) {
+			System.err.println("----------------------------------------Error while posting to Elasticsearch. This is fatal!");
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -6,7 +6,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import de.recondita.emden.appearance.ResultList;
+import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.search.ElasticsearchWrapper;
 
 @Path("/search")
