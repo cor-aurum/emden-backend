@@ -13,10 +13,13 @@ import java.util.ArrayList;
 
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 
+import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Result;
 import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.Settings;
@@ -39,16 +42,18 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		}
 		String resultString = "";
 		try {
-			resultString = get(esUrl + "/_search?q=*" + query+"*");
+			resultString = get(esUrl + "/_search?q=" + query + "&size="+Settings.getInstance().getProperty("max.searchresults"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		JsonArray results = toJson(resultString).getJsonObject("hits").getJsonArray("hits");
+		JsonObject result = toJson(resultString);
+		JsonArray results = result.getJsonObject("hits").getJsonArray("hits");
 		ArrayList<Result> ret = new ArrayList<Result>();
 		for (JsonValue o : results) {
 			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
 		}
-		return new ResultList(ret.toArray(new Result[ret.size()]));
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
+				result.getJsonObject("hits").getJsonNumber("total").toString());
 	}
 
 	@Override
@@ -73,16 +78,16 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		in.close();
 		return response.toString();
 	}
-	
+
 	private String post(String url, String json) throws IOException {
 		System.out.println(json);
-		byte[] payload=json.getBytes(StandardCharsets.UTF_8);
+		byte[] payload = json.getBytes(StandardCharsets.UTF_8);
 		URL u = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) u.openConnection();
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.setFixedLengthStreamingMode(payload.length);
-		con.setRequestProperty("Content-Type", "application/json; charset=UTF-8"); 
+		con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 		con.getOutputStream().write(payload);
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String input;
@@ -96,11 +101,48 @@ public class ElasticsearchWrapper implements SearchWrapper {
 	@Override
 	public void pushResult(Result r) {
 		try {
-			System.out.println(post(esUrl+"/logs/emden", r.getData().toString()));
+			System.out.println(post(esUrl + "/emden/_doc", r.getData().toString()));
 		} catch (IOException e) {
-			System.err.println("----------------------------------------Error while posting to Elasticsearch. This is fatal!");
+			System.err.println(
+					"----------------------------------------Error while posting to Elasticsearch. This is fatal!");
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public ResultList advancedSearch(String[] query) {
+		JsonObjectBuilder builder = Json.createObjectBuilder();
+		JsonObjectBuilder querybuilder = Json.createObjectBuilder();
+		JsonObjectBuilder bool = Json.createObjectBuilder();
+		JsonArrayBuilder should = Json.createArrayBuilder();
+		String[] fields = DataFieldSetup.getDatafields();
+		for (int i = 0; i < query.length; i++) {
+			if (query[i] != null && !query[i].isEmpty()) {
+				JsonObjectBuilder tmp = Json.createObjectBuilder();
+				JsonObjectBuilder data = Json.createObjectBuilder();
+				data.add(fields[i], query[i]);
+				tmp.add("match", data);
+				should.add(tmp);
+			}
+		}
+		bool.add("must", should);
+		querybuilder.add("bool", bool);
+		builder.add("query", querybuilder);
+		builder.add("size", Settings.getInstance().getProperty("max.searchresults"));
+		String resultString = "";
+		try {
+			resultString = post(esUrl+"/emden/_search", builder.build().toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		JsonObject result = toJson(resultString);
+		JsonArray results = result.getJsonObject("hits").getJsonArray("hits");
+		ArrayList<Result> ret = new ArrayList<Result>();
+		for (JsonValue o : results) {
+			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
+		}
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
+				result.getJsonObject("hits").getJsonNumber("total").toString());
 	}
 
 }

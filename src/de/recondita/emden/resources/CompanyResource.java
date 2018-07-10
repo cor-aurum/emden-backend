@@ -8,6 +8,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.PathProvider;
 import de.recondita.emden.data.Settings;
 
@@ -30,5 +31,12 @@ public class CompanyResource {
 	@Produces("text/plain")
 	public String getCompanyName() {
 		return Settings.getInstance().getProperty("company.name");
+	}
+	
+	@Path("/datafields")
+	@GET
+	@Produces("application/json")
+	public String getDatafields() {
+		return DataFieldSetup.getDatafieldsAsJson().toString();
 	}
 }

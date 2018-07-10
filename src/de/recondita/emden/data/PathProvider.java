@@ -6,6 +6,7 @@ public class PathProvider {
 
 	private File logo;
 	private File properties;
+	private File config;
 
 	private static final class InstanceHolder {
 		final static PathProvider INSTANCE = new PathProvider();
@@ -17,6 +18,7 @@ public class PathProvider {
 			throw new RuntimeException("no config dir found. Please set $EMDEN");
 		logo = new File(root + File.separator + "res" + File.separator + "logo.png");
 		properties = new File(root + File.separator + "config" + File.separator + "settings.properties");
+		config = new File(root + File.separator + "config" + File.separator + "config.xml");
 	}
 
 	public static PathProvider getInstance() {
@@ -29,5 +31,9 @@ public class PathProvider {
 	
 	public File getProperties() {
 		return properties;
+	}
+	
+	public File getConfig() {
+		return config;
 	}
 }

@@ -4,15 +4,17 @@ import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 
+import de.recondita.emden.data.PathProvider;
+
 @Startup
 @Singleton
 public class Starter {
 	
 	@PostConstruct
 	  void init() {
-		System.out.println("Init");
-		//CSVCrawler crawler=new CSVCrawler(new File("/home/felix/Downloads/test.csv"), ";", true, null);
-		//crawler.pushResults(new ElasticsearchWrapper());
+		new ConfigParser(PathProvider.getInstance().getConfig());
+//		CSVCrawler c=new CSVCrawler(new File("/home/felix/Downloads/convertcsv.csv"), ",", true, new String[] {"Title","Text"});
+//		c.pushResults(new ElasticsearchWrapper());
 	  }
 
 }

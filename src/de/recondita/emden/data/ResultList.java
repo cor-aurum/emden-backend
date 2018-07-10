@@ -8,9 +8,13 @@ import javax.json.JsonObjectBuilder;
 public class ResultList {
 
 	private Result[] results;
+	private String took;
+	private String count;
 
-	public ResultList(Result[] results) {
+	public ResultList(Result[] results, String took, String count) {
 		this.results=results;
+		this.took=took;
+		this.count=count;
 	}
 
 	public JsonObject getJson() {
@@ -21,6 +25,8 @@ public class ResultList {
 			array.add(r.getData());
 		}
 		builder.add("Results", array);
+		builder.add("Took", took);
+		builder.add("Count", count);
 		
 		return builder.build();
 	}

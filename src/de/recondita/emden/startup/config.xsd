@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xs:element name="emden" type="emdenType"/>
+  <xs:complexType name="datafieldType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional"/>
+        <xs:attribute type="xs:byte" name="col" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="datafieldsType">
+    <xs:sequence>
+      <xs:element type="datafieldType" name="datafield" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="scheduleType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="cron"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="csvsourceType">
+    <xs:sequence>
+      <xs:element type="datafieldsType" name="datafields"/>
+      <xs:element type="scheduleType" name="schedule"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="path"/>
+    <xs:attribute type="xs:string" name="firstRowHeader"/>
+  </xs:complexType>
+  <xs:complexType name="sourcesType">
+    <xs:sequence>
+      <xs:element type="csvsourceType" name="csvsource"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="emdenType">
+    <xs:sequence>
+      <xs:element type="datafieldsType" name="datafields"/>
+      <xs:element type="sourcesType" name="sources"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
