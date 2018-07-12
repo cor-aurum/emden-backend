@@ -42,7 +42,8 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		}
 		String resultString = "";
 		try {
-			resultString = get(esUrl + "/_search?q=" + query + "&size="+Settings.getInstance().getProperty("max.searchresults"));
+			resultString = get(
+					esUrl + "/_search?q=" + query + "&size=" + Settings.getInstance().getProperty("max.searchresults"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -54,11 +55,6 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		}
 		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
 				result.getJsonObject("hits").getJsonNumber("total").toString());
-	}
-
-	@Override
-	public Result getResult(int id) {
-		return null;
 	}
 
 	private JsonObject toJson(String s) {
@@ -80,7 +76,6 @@ public class ElasticsearchWrapper implements SearchWrapper {
 	}
 
 	private String post(String url, String json) throws IOException {
-		System.out.println(json);
 		byte[] payload = json.getBytes(StandardCharsets.UTF_8);
 		URL u = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) u.openConnection();
@@ -99,18 +94,49 @@ public class ElasticsearchWrapper implements SearchWrapper {
 	}
 
 	@Override
-	public void pushResult(Result r) {
+	public boolean pushResult(Result r) {
 		try {
-			System.out.println(post(esUrl + "/emden/_doc", r.getData().toString()));
+			if (advancedSearch(r.getFlatData(), true).getLength() <= 0) {
+				post(esUrl + "/emden/_doc", r.getData().toString());
+				return true;
+			}
 		} catch (IOException e) {
 			System.err.println(
 					"----------------------------------------Error while posting to Elasticsearch. This is fatal!");
 			e.printStackTrace();
+
 		}
+		return false;
 	}
 
-	@Override
-	public ResultList advancedSearch(String[] query) {
+	private String exactSearchJson(String[] query) {
+		JsonObjectBuilder builder = Json.createObjectBuilder();
+		JsonObjectBuilder querybuilder = Json.createObjectBuilder();
+		JsonObjectBuilder bool = Json.createObjectBuilder();
+		JsonObjectBuilder filter = Json.createObjectBuilder();
+		JsonObjectBuilder score = Json.createObjectBuilder();
+		JsonArrayBuilder should = Json.createArrayBuilder();
+		String[] fields = DataFieldSetup.getDatafields();
+		for (int i = 0; i < query.length; i++) {
+			if (query[i] != null && !query[i].isEmpty()) {
+				JsonObjectBuilder tmp = Json.createObjectBuilder();
+				JsonObjectBuilder data = Json.createObjectBuilder();
+				data.add(fields[i], query[i]);
+				tmp.add("match_phrase", data);
+				should.add(tmp);
+			}
+		}
+		bool.add("must", should);
+		querybuilder.add("bool", bool);
+		filter.add("filter", querybuilder);
+		score.add("constant_score", filter);
+		builder.add("query", score);
+//		builder.add("minimum_should_match",1.0);
+		builder.add("size", Settings.getInstance().getProperty("max.searchresults"));
+		return builder.build().toString();
+	}
+
+	private String searchJson(String[] query) {
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 		JsonObjectBuilder querybuilder = Json.createObjectBuilder();
 		JsonObjectBuilder bool = Json.createObjectBuilder();
@@ -129,11 +155,22 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		querybuilder.add("bool", bool);
 		builder.add("query", querybuilder);
 		builder.add("size", Settings.getInstance().getProperty("max.searchresults"));
+		return builder.build().toString();
+	}
+
+	@Override
+	public ResultList advancedSearch(String[] query, boolean exact) {
+
+		// if (exact)
+		// builder.add("phrase_slop", 0.0);
 		String resultString = "";
+		String searchString = exact ? exactSearchJson(query) : searchJson(query);
+//		System.out.println("Suchstring: " + searchString);
 		try {
-			resultString = post(esUrl+"/emden/_search", builder.build().toString());
+			resultString = post(esUrl + "/emden/_search", searchString);
 		} catch (IOException e) {
 			e.printStackTrace();
+			return new ResultList(new Result[] {}, "0", "0");
 		}
 		JsonObject result = toJson(resultString);
 		JsonArray results = result.getJsonObject("hits").getJsonArray("hits");

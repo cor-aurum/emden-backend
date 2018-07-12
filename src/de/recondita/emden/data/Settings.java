@@ -17,6 +17,7 @@ public class Settings {
 		defaults=new Properties();
 		defaults.setProperty("elasticsearch.url", "http://localhost:9200");
 		defaults.setProperty("max.searchresults", "25");
+		defaults.setProperty("default.cron", "0 4 * * * ?");
 		properties=new Properties(defaults);
 		FileInputStream in;
 		try {

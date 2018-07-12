@@ -19,7 +19,7 @@ public class Result {
 	public Result(JsonObject json) {
 		ArrayList<DataField> temp = new ArrayList<DataField>();
 		for (Entry<String, JsonValue> e : json.entrySet()) {
-			temp.add(new DataField(e.getKey(), ((JsonString)e.getValue()).getString()));
+			temp.add(new DataField(e.getKey(), ((JsonString) e.getValue()).getString()));
 		}
 		data = temp.toArray(new DataField[temp.size()]);
 	}
@@ -30,6 +30,23 @@ public class Result {
 			builder.add(d.getDescription(), d.getData());
 		}
 		return builder.build();
+	}
+
+	public DataField[] getPlainData() {
+		return data;
+	}
+
+	public String[] getFlatData() {
+		String[] ret = new String[DataFieldSetup.getDatafields().length];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i] = "";
+			for (int j = 0; j < data.length; j++) {
+				if (data[j].getDescription().equals(DataFieldSetup.getDatafields()[i])) {
+					ret[i]=data[j].getData();
+				}
+			}
+		}
+		return ret;
 	}
 
 }

@@ -27,7 +27,7 @@ public class SimpleSearchResource {
 		String[] params = new String[datafields.length];
 		int i = 0;
 		for (String s : datafields) {
-			params[i] = query.getFirst(s)==null?"":query.getFirst(s);
+			params[i] = query.getFirst(s) == null ? "" : query.getFirst(s);
 			i++;
 		}
 		boolean simpleSearch = true;
@@ -38,7 +38,7 @@ public class SimpleSearchResource {
 		}
 		if (simpleSearch)
 			return getSearchResult(query.getFirst("query"));
-		ResultList l = new ElasticsearchWrapper().advancedSearch(params);
+		ResultList l = new ElasticsearchWrapper().advancedSearch(params, false);
 		return l.getJson().toString();
 	}
 }

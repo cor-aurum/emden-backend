@@ -5,7 +5,6 @@ import de.recondita.emden.data.ResultList;
 
 public interface SearchWrapper {
 	ResultList simpleSearch(String query);
-	Result getResult(int id);
-	void pushResult(Result r);
-	ResultList advancedSearch(String[] query);
+	boolean pushResult(Result r);
+	ResultList advancedSearch(String[] query, boolean exact);
 }
