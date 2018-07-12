@@ -8,12 +8,18 @@ import org.quartz.SchedulerException;
 import de.recondita.emden.data.input.CronCrawler;
 import de.recondita.emden.data.search.ElasticsearchWrapper;
 
-public class CrawlerJob implements Job{
+/**
+ * Job for the Crawler to be started in Cron
+ * 
+ * @author felix
+ *
+ */
+public class CrawlerJob implements Job {
 	@Override
 	public void execute(JobExecutionContext ctx) throws JobExecutionException {
 		System.out.println("Cron Execution started");
 		try {
-			CronCrawler c =(CronCrawler)ctx.getScheduler().getContext().get("crawler");
+			CronCrawler c = (CronCrawler) ctx.getScheduler().getContext().get("crawler");
 			c.pushResults(new ElasticsearchWrapper());
 		} catch (SchedulerException e) {
 			e.printStackTrace();

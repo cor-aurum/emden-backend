@@ -12,9 +12,18 @@ import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.PathProvider;
 import de.recondita.emden.data.Settings;
 
+/**
+ * REST Endpoint for Basic Information
+ * @author felix
+ *
+ */
 @Path("/company")
 public class CompanyResource {
 	
+	/**
+	 * Logo Endpoint
+	 * @return logo
+	 */
 	@Path("/logo")
 	@GET
 	@Produces("image/png")
@@ -26,6 +35,10 @@ public class CompanyResource {
 	}
 	
 	
+	/**
+	 * Name of the Company
+	 * @return name of the company
+	 */
 	@Path("/name")
 	@GET
 	@Produces("text/plain")
@@ -33,6 +46,10 @@ public class CompanyResource {
 		return Settings.getInstance().getProperty("company.name");
 	}
 	
+	/**
+	 * Configured DataFields
+	 * @return datafields (as in DataFieldSetup)
+	 */
 	@Path("/datafields")
 	@GET
 	@Produces("application/json")

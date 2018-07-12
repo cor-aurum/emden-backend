@@ -11,14 +11,29 @@ import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.search.ElasticsearchWrapper;
 
+/**
+ * Endpoint for SearchRequests
+ * @author felix
+ *
+ */
 @Path("/search")
 public class SimpleSearchResource {
 
+	/**
+	 * SimpleSearch
+	 * @param query single term Query
+	 * @return result (as JSON)
+	 */
 	public String getSearchResult(String query) {
 		ResultList l = new ElasticsearchWrapper().simpleSearch(query);
 		return l.getJson().toString();
 	}
 
+	/**
+	 * Search
+	 * @param ui GET Parameters
+	 * @return JSON String
+	 */
 	@GET
 	@Produces("application/json")
 	public String getAdvancedSearchResult(@Context UriInfo ui) {

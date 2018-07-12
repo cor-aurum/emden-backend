@@ -5,20 +5,35 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-public class Settings {
+/**
+ * Manages the Program Settings
+ * 
+ * @author felix
+ *
+ */
+public final class Settings {
+	/**
+	 * SingletonHolder
+	 * 
+	 * @author felix
+	 *
+	 */
 	private static final class InstanceHolder {
 		final static Settings INSTANCE = new Settings();
 	}
-	
+
 	private Properties properties;
 	private Properties defaults;
 
+	/**
+	 * Private Constructor for the SingletonHolder
+	 */
 	private Settings() {
-		defaults=new Properties();
+		defaults = new Properties();
 		defaults.setProperty("elasticsearch.url", "http://localhost:9200");
 		defaults.setProperty("max.searchresults", "25");
 		defaults.setProperty("default.cron", "0 4 * * * ?");
-		properties=new Properties(defaults);
+		properties = new Properties(defaults);
 		FileInputStream in;
 		try {
 			in = new FileInputStream(PathProvider.getInstance().getProperties());
@@ -29,12 +44,23 @@ public class Settings {
 			e.printStackTrace();
 		}
 	}
-	
+
+	/**
+	 * Gives a Property to a given key
+	 * 
+	 * @param key
+	 *            propertykey
+	 * @return property
+	 */
 	public String getProperty(String key) {
 		return properties.getProperty(key, "");
 	}
-	
-	
+
+	/**
+	 * Gives the Insatnce of the Singleton
+	 * 
+	 * @return Instance
+	 */
 	public static Settings getInstance() {
 		return InstanceHolder.INSTANCE;
 	}

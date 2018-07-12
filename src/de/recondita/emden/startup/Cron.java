@@ -11,15 +11,32 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import de.recondita.emden.data.input.CronCrawler;
 
+/**
+ * Dynamic Scheduler
+ * 
+ * @author felix
+ *
+ * @param <C>
+ */
 public class Cron<C extends CronCrawler> {
 
+	/**
+	 * Constructs a Scheduling Service for a Crawler with a cron ConfigString
+	 * 
+	 * @param schedule
+	 *            configString
+	 * @param crawler
+	 *            crawler to Schedule
+	 * @throws SchedulerException
+	 *             if something wents terribly wrong
+	 */
 	public Cron(String schedule, C crawler) throws SchedulerException {
-		JobDetail jobDetail=JobBuilder.newJob(CrawlerJob.class).withDescription(crawler.getType()).build();
+		JobDetail jobDetail = JobBuilder.newJob(CrawlerJob.class).withDescription(crawler.getType()).build();
 		CronTrigger trigger = TriggerBuilder.newTrigger().withDescription(crawler.getType())
 				.withSchedule(CronScheduleBuilder.cronSchedule(schedule)).build();
-		Scheduler scheduler=new StdSchedulerFactory().getScheduler();
+		Scheduler scheduler = new StdSchedulerFactory().getScheduler();
 		scheduler.start();
-		scheduler.getContext().put("crawler",crawler);
+		scheduler.getContext().put("crawler", crawler);
 		scheduler.scheduleJob(jobDetail, trigger);
 	}
 }

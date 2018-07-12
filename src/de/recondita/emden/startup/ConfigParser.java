@@ -18,7 +18,17 @@ import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Settings;
 import de.recondita.emden.data.input.CSVCrawler;
 
+/**
+ * Parses the Config, given as XML
+ * @author felix
+ *
+ */
 public class ConfigParser {
+	
+	/**
+	 * Constructor
+	 * @param configXml Config as XML
+	 */
 	public ConfigParser(File configXml) {
 		try {
 			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(configXml);

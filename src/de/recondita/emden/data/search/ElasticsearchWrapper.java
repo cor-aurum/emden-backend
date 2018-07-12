@@ -24,10 +24,18 @@ import de.recondita.emden.data.Result;
 import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.Settings;
 
+/**
+ * SearchWrapper for ElasticSearch
+ * @author felix
+ *
+ */
 public class ElasticsearchWrapper implements SearchWrapper {
 
 	private final String esUrl;
 
+	/**
+	 * Constructor..
+	 */
 	public ElasticsearchWrapper() {
 		Settings s = Settings.getInstance();
 		esUrl = s.getProperty("elasticsearch.url");
@@ -53,8 +61,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		for (JsonValue o : results) {
 			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
 		}
-		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
-				result.getJsonObject("hits").getJsonNumber("total").toString());
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString());
 	}
 
 	private JsonObject toJson(String s) {
@@ -170,7 +177,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 			resultString = post(esUrl + "/emden/_search", searchString);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return new ResultList(new Result[] {}, "0", "0");
+			return new ResultList(new Result[] {}, "0");
 		}
 		JsonObject result = toJson(resultString);
 		JsonArray results = result.getJsonObject("hits").getJsonArray("hits");
@@ -178,8 +185,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		for (JsonValue o : results) {
 			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
 		}
-		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
-				result.getJsonObject("hits").getJsonNumber("total").toString());
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString());
 	}
 
 }

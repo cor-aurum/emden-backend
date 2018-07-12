@@ -11,6 +11,12 @@ import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Result;
 import de.recondita.emden.data.search.SearchWrapper;
 
+/**
+ * Crawls a CSV for Data, provided in DataFieldSetup
+ * 
+ * @author felix
+ *
+ */
 public class CSVCrawler implements CronCrawler {
 	private static final long serialVersionUID = 3145532824633805034L;
 	private final File csv;
@@ -22,8 +28,11 @@ public class CSVCrawler implements CronCrawler {
 	 * Crawlt eine CSV nach bestimmten Daten
 	 * 
 	 * @param csv
+	 *            CSV File
 	 * @param separator
+	 *            Separator String (,;- etc.)
 	 * @param firstLineHeader
+	 *            whether the first line should be ignored
 	 * @param rowsForDatafields
 	 *            Integer Array, das auf {@code DataFieldSetup.getDatafields()}
 	 *            passt. Nimmt -1 für nicht belegte Felder
@@ -37,6 +46,7 @@ public class CSVCrawler implements CronCrawler {
 
 	@Override
 	public void pushResults(SearchWrapper search) {
+		long aktTime = System.currentTimeMillis();
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(csv));
@@ -70,6 +80,7 @@ public class CSVCrawler implements CronCrawler {
 					nosucc++;
 
 			}
+			System.out.println("Benötigte Zeit: " + ((System.currentTimeMillis() - aktTime) / 1000) + "s");
 			System.out.println("Hinzugefügte Dokumente: " + succ);
 			System.out.println("Nicht hinzugefügte Dokumente: " + nosucc);
 		} catch (FileNotFoundException e) {

@@ -4,8 +4,25 @@ import java.io.Serializable;
 
 import de.recondita.emden.data.search.SearchWrapper;
 
+/**
+ * Crawler for DataSources to be periodically called
+ * @author felix
+ *
+ */
 public interface CronCrawler extends Serializable {
-	public void pushResults(SearchWrapper search);
-	
-	public String getType();
+
+	/**
+	 * Pushs the Results to a SearchWrapper (ElasticSearch)
+	 * 
+	 * @param search
+	 *            SearchWrapper to Push to
+	 */
+	void pushResults(SearchWrapper search);
+
+	/**
+	 * Short Description of the Crawler
+	 * 
+	 * @return short String
+	 */
+	String getType();
 }
