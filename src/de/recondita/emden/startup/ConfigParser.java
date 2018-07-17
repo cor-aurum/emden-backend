@@ -20,14 +20,17 @@ import de.recondita.emden.data.input.CSVCrawler;
 
 /**
  * Parses the Config, given as XML
+ * 
  * @author felix
  *
  */
 public class ConfigParser {
-	
+
 	/**
 	 * Constructor
-	 * @param configXml Config as XML
+	 * 
+	 * @param configXml
+	 *            Config as XML
 	 */
 	public ConfigParser(File configXml) {
 		try {
@@ -83,6 +86,7 @@ public class ConfigParser {
 
 	private void parseCSV(NodeList csv, NamedNodeMap namedNodeMap) throws SchedulerException {
 		String path = namedNodeMap.getNamedItem("path").getNodeValue();
+		String id = namedNodeMap.getNamedItem("id").getNodeValue();
 		String firstRowHeader = namedNodeMap.getNamedItem("firstRowHeader").getNodeValue();
 		String separator = namedNodeMap.getNamedItem("separator").getNodeValue();
 		String cron = Settings.getInstance().getProperty("default.cron");
@@ -114,7 +118,7 @@ public class ConfigParser {
 		}
 
 		new Cron<CSVCrawler>(cron, new CSVCrawler(new File(path), separator,
-				!firstRowHeader.toLowerCase().startsWith("f"), rowsForDatafields));
+				!firstRowHeader.toLowerCase().startsWith("f"), rowsForDatafields, id));
 		System.out.println("Pfad: " + path);
 		System.out.println("FirstRowHeader: " + firstRowHeader);
 	}

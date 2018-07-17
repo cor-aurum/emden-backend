@@ -26,6 +26,7 @@ import de.recondita.emden.data.Settings;
 
 /**
  * SearchWrapper for ElasticSearch
+ * 
  * @author felix
  *
  */
@@ -61,7 +62,8 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		for (JsonValue o : results) {
 			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
 		}
-		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString());
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
+				result.getJsonObject("hits").getJsonNumber("total").toString());
 	}
 
 	private JsonObject toJson(String s) {
@@ -80,6 +82,14 @@ public class ElasticsearchWrapper implements SearchWrapper {
 			response.append(input);
 		in.close();
 		return response.toString();
+	}
+
+	private void delete(String url) throws IOException {
+		System.out.println("URL des Zu löschenden Index: " + url);
+		URL u = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) u.openConnection();
+		con.setRequestMethod("DELETE");
+		System.out.println("Deleted Index: " + con.getResponseCode());
 	}
 
 	private String post(String url, String json) throws IOException {
@@ -101,10 +111,10 @@ public class ElasticsearchWrapper implements SearchWrapper {
 	}
 
 	@Override
-	public boolean pushResult(Result r) {
+	public boolean pushResult(Result r, String index) {
 		try {
 			if (advancedSearch(r.getFlatData(), true).getLength() <= 0) {
-				post(esUrl + "/emden/_doc", r.getData().toString());
+				post(esUrl + "/emden/" + index + "_doc", r.getData().toString());
 				return true;
 			}
 		} catch (IOException e) {
@@ -138,7 +148,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		filter.add("filter", querybuilder);
 		score.add("constant_score", filter);
 		builder.add("query", score);
-//		builder.add("minimum_should_match",1.0);
+		// builder.add("minimum_should_match",1.0);
 		builder.add("size", Settings.getInstance().getProperty("max.searchresults"));
 		return builder.build().toString();
 	}
@@ -167,17 +177,14 @@ public class ElasticsearchWrapper implements SearchWrapper {
 
 	@Override
 	public ResultList advancedSearch(String[] query, boolean exact) {
-
-		// if (exact)
-		// builder.add("phrase_slop", 0.0);
 		String resultString = "";
 		String searchString = exact ? exactSearchJson(query) : searchJson(query);
-//		System.out.println("Suchstring: " + searchString);
+		// System.out.println("Suchstring: " + searchString);
 		try {
 			resultString = post(esUrl + "/emden/_search", searchString);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return new ResultList(new Result[] {}, "0");
+			return new ResultList(new Result[] {}, "0", "0");
 		}
 		JsonObject result = toJson(resultString);
 		JsonArray results = result.getJsonObject("hits").getJsonArray("hits");
@@ -185,7 +192,18 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		for (JsonValue o : results) {
 			ret.add(new Result(((JsonObject) o).getJsonObject("_source")));
 		}
-		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString());
+		return new ResultList(ret.toArray(new Result[ret.size()]), result.getJsonNumber("took").toString(),
+				result.getJsonObject("hits").getJsonNumber("total").toString());
 	}
 
+	@Override
+	public Pusher pushResults(String index) {
+		try {
+			return new Pusher(esUrl + "/emden/" + index + "/_bulk");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

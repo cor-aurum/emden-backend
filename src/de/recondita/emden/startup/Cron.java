@@ -38,5 +38,6 @@ public class Cron<C extends CronCrawler> {
 		scheduler.start();
 		scheduler.getContext().put("crawler", crawler);
 		scheduler.scheduleJob(jobDetail, trigger);
+		//crawler.pushResults(new ElasticsearchWrapper());
 	}
 }

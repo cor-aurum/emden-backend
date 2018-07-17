@@ -24,9 +24,18 @@ public interface SearchWrapper {
 	 * 
 	 * @param r
 	 *            Result
+	 * @param index
+	 *            Index to push on
 	 * @return Success
 	 */
-	boolean pushResult(Result r);
+	boolean pushResult(Result r, String index);
+
+	/**
+	 * A bulk push
+	 * @param index index to push on
+	 * @return Pusherobject
+	 */
+	Pusher pushResults(String index);
 
 	/**
 	 * More Advanced Search with multiple fields

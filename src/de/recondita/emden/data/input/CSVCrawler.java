@@ -9,6 +9,7 @@ import java.io.IOException;
 import de.recondita.emden.data.DataField;
 import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Result;
+import de.recondita.emden.data.search.Pusher;
 import de.recondita.emden.data.search.SearchWrapper;
 
 /**
@@ -23,6 +24,7 @@ public class CSVCrawler implements CronCrawler {
 	private final String separator;
 	private boolean firstLineHeader;
 	private int[] rowsForDatafields;
+	private String id;
 
 	/**
 	 * Crawlt eine CSV nach bestimmten Daten
@@ -33,15 +35,18 @@ public class CSVCrawler implements CronCrawler {
 	 *            Separator String (,;- etc.)
 	 * @param firstLineHeader
 	 *            whether the first line should be ignored
+	 * @param id
+	 *            Identifier of the source
 	 * @param rowsForDatafields
 	 *            Integer Array, das auf {@code DataFieldSetup.getDatafields()}
 	 *            passt. Nimmt -1 für nicht belegte Felder
 	 */
-	public CSVCrawler(File csv, String separator, boolean firstLineHeader, int[] rowsForDatafields) {
+	public CSVCrawler(File csv, String separator, boolean firstLineHeader, int[] rowsForDatafields, String id) {
 		this.csv = csv;
 		this.separator = separator;
 		this.firstLineHeader = firstLineHeader;
 		this.rowsForDatafields = rowsForDatafields;
+		this.id = id;
 	}
 
 	@Override
@@ -52,20 +57,26 @@ public class CSVCrawler implements CronCrawler {
 			br = new BufferedReader(new FileReader(csv));
 			boolean firstLine = true;
 			String line = null;
-			int succ = 0;
-			int nosucc = 0;
+			// sBuffer.append("{\"delete\":{}}\n");
+
+			// Declare Reusable Objects here, for Performance Reasons
+			String[] d = DataFieldSetup.getDatafields();
+			String[] data;
+			DataField[] dataField = new DataField[d.length];
+			int i;
+			Pusher pusher= search.pushResults(id);
 			while ((line = br.readLine()) != null) {
 				if (line.isEmpty())
 					continue;
-				String[] data = line.split(separator);
+				data = line.split(separator);
 				if (firstLine && firstLineHeader) {
 					firstLine = false;
 					continue;
 				}
 				firstLine = false;
-				DataField[] dataField = new DataField[data.length];
-				int i = 0;
-				for (String s : DataFieldSetup.getDatafields()) {
+				// dataField = new DataField[data.length];
+				i = 0;
+				for (String s : d) {
 					try {
 						if (rowsForDatafields[i] >= 0)
 							dataField[i] = new DataField(s, data[rowsForDatafields[i]]);
@@ -74,15 +85,10 @@ public class CSVCrawler implements CronCrawler {
 						e.printStackTrace();
 					}
 				}
-				if (search.pushResult(new Result(dataField)))
-					succ++;
-				else
-					nosucc++;
-
+				pusher.writeJsonString(new Result(dataField).getData().toString());
 			}
+			pusher.send();
 			System.out.println("Benötigte Zeit: " + ((System.currentTimeMillis() - aktTime) / 1000) + "s");
-			System.out.println("Hinzugefügte Dokumente: " + succ);
-			System.out.println("Nicht hinzugefügte Dokumente: " + nosucc);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -98,7 +104,7 @@ public class CSVCrawler implements CronCrawler {
 
 	@Override
 	public String getType() {
-		return "CSV";
+		return id;
 	}
 
 }

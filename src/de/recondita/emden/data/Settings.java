@@ -33,6 +33,7 @@ public final class Settings {
 		defaults.setProperty("elasticsearch.url", "http://localhost:9200");
 		defaults.setProperty("max.searchresults", "25");
 		defaults.setProperty("default.cron", "0 4 * * * ?");
+		defaults.setProperty("http.blocksize", "100000");
 		properties = new Properties(defaults);
 		FileInputStream in;
 		try {

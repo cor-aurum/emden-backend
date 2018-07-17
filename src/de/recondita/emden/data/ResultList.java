@@ -14,15 +14,18 @@ public class ResultList {
 
 	private Result[] results;
 	private String took;
+	private String count;
 
 	/**
 	 * Constructs a List of Results
 	 * @param results Array of Results
 	 * @param took Time needed to collect results
+	 * @param count Number of results
 	 */
-	public ResultList(Result[] results, String took) {
+	public ResultList(Result[] results, String took, String count) {
 		this.results = results;
 		this.took = took;
+		this.count=count;
 	}
 
 	/**
@@ -38,7 +41,7 @@ public class ResultList {
 		}
 		builder.add("Results", array);
 		builder.add("Took", took);
-		builder.add("Count", ""+results.length);
+		builder.add("Count", count);
 
 		return builder.build();
 	}
@@ -49,5 +52,9 @@ public class ResultList {
 	 */
 	public int getLength() {
 		return results.length;
+	}
+
+	public Result[] getResults() {
+		return results;
 	}
 }

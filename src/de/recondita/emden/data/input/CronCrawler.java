@@ -20,9 +20,9 @@ public interface CronCrawler extends Serializable {
 	void pushResults(SearchWrapper search);
 
 	/**
-	 * Short Description of the Crawler
+	 * Source Identifier
 	 * 
-	 * @return short String
+	 * @return id
 	 */
 	String getType();
 }

@@ -1,5 +1,6 @@
 package de.recondita.emden.startup;
 
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -14,6 +15,7 @@ import de.recondita.emden.data.search.ElasticsearchWrapper;
  * @author felix
  *
  */
+@DisallowConcurrentExecution
 public class CrawlerJob implements Job {
 	@Override
 	public void execute(JobExecutionContext ctx) throws JobExecutionException {
