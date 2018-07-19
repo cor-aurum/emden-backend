@@ -1,14 +1,9 @@
 package de.recondita.emden.data.search;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.json.Json;
@@ -20,9 +15,11 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 
 import de.recondita.emden.data.DataFieldSetup;
+import de.recondita.emden.data.RESTHandler;
 import de.recondita.emden.data.Result;
 import de.recondita.emden.data.ResultList;
 import de.recondita.emden.data.Settings;
+import de.recondita.emden.data.input.SourceSetup;
 
 /**
  * SearchWrapper for ElasticSearch
@@ -33,6 +30,7 @@ import de.recondita.emden.data.Settings;
 public class ElasticsearchWrapper implements SearchWrapper {
 
 	private final String esUrl;
+	private final RESTHandler rest = new RESTHandler();
 
 	/**
 	 * Constructor..
@@ -44,6 +42,19 @@ public class ElasticsearchWrapper implements SearchWrapper {
 
 	@Override
 	public ResultList simpleSearch(String query) {
+		return simpleSearch(query, SourceSetup.getSourceCSV());
+	}
+
+	/**
+	 * Simple Search above an index
+	 * 
+	 * @param query
+	 *            Searchterm
+	 * @param index
+	 *            Index to search
+	 * @return Resultlist
+	 */
+	public ResultList simpleSearch(String query, String index) {
 		try {
 			query = URLEncoder.encode(query, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
@@ -51,8 +62,8 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		}
 		String resultString = "";
 		try {
-			resultString = get(
-					esUrl + "/_search?q=" + query + "&size=" + Settings.getInstance().getProperty("max.searchresults"));
+			resultString = rest.get(esUrl + "/" + index + "/_search?q=" + query + "&size="
+					+ Settings.getInstance().getProperty("max.searchresults"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -71,50 +82,12 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		return reader.readObject();
 	}
 
-	private String get(String url) throws IOException {
-		URL u = new URL(url);
-		HttpURLConnection con = (HttpURLConnection) u.openConnection();
-		con.setRequestMethod("GET");
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String input;
-		StringBuffer response = new StringBuffer();
-		while ((input = in.readLine()) != null)
-			response.append(input);
-		in.close();
-		return response.toString();
-	}
-
-	private void delete(String url) throws IOException {
-		System.out.println("URL des Zu löschenden Index: " + url);
-		URL u = new URL(url);
-		HttpURLConnection con = (HttpURLConnection) u.openConnection();
-		con.setRequestMethod("DELETE");
-		System.out.println("Deleted Index: " + con.getResponseCode());
-	}
-
-	private String post(String url, String json) throws IOException {
-		byte[] payload = json.getBytes(StandardCharsets.UTF_8);
-		URL u = new URL(url);
-		HttpURLConnection con = (HttpURLConnection) u.openConnection();
-		con.setRequestMethod("POST");
-		con.setDoOutput(true);
-		con.setFixedLengthStreamingMode(payload.length);
-		con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-		con.getOutputStream().write(payload);
-		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		String input;
-		StringBuffer response = new StringBuffer();
-		while ((input = in.readLine()) != null)
-			response.append(input);
-		in.close();
-		return response.toString();
-	}
-
 	@Override
 	public boolean pushResult(Result r, String index) {
 		try {
 			if (advancedSearch(r.getFlatData(), true).getLength() <= 0) {
-				post(esUrl + "/emden/" + index + "_doc", r.getData().toString());
+				rest.post(esUrl + Settings.getInstance().getProperty("index.basename") + index.toLowerCase() + "/_doc",
+						r.getData().toString());
 				return true;
 			}
 		} catch (IOException e) {
@@ -175,13 +148,56 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		return builder.build().toString();
 	}
 
+	private boolean checkCount(String index, int expected) {
+		ResultList r = simpleSearch("*", index);
+		int t=Integer.parseInt(r.getCount());
+
+		return t>=expected;
+	}
+
+	/**
+	 * Copies a index to a new name. If the new Index is already present, it will be
+	 * deleted.
+	 * 
+	 * @param oldIndexname
+	 *            old Index
+	 * @param newIndexname
+	 *            Index to copy to
+	 * @throws IOException
+	 */
+	void renameIndex(String oldIndexname, String newIndexname, int countOfOldIndex) throws IOException {
+		System.out.println("Replace " + newIndexname + " with " + oldIndexname);
+		SourceSetup.doBackup(newIndexname);
+		String indexstub = Settings.getInstance().getProperty("elasticsearch.url") + "/";
+		if (rest.existsEndpoint(indexstub + oldIndexname)) {
+			String rename = "{\"source\": {\"index\": \"" + oldIndexname + "\"},\"dest\": {\"index\": \"" + newIndexname
+					+ "\"}}";
+			/**
+			 * Wait for Elasticsearch to complete indexing
+			 */
+			while (!checkCount(oldIndexname, countOfOldIndex)) {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			rest.delete(indexstub + newIndexname);
+			long aktTime = System.currentTimeMillis();
+			rest.post(esUrl + "/_reindex", rename);
+			rest.delete(indexstub + oldIndexname);
+			System.out.println("Time taken to rename index: " + ((System.currentTimeMillis() - aktTime) / 1000) + "s");
+			SourceSetup.undoBackup(newIndexname);
+		}
+	}
+
 	@Override
 	public ResultList advancedSearch(String[] query, boolean exact) {
 		String resultString = "";
 		String searchString = exact ? exactSearchJson(query) : searchJson(query);
 		// System.out.println("Suchstring: " + searchString);
 		try {
-			resultString = post(esUrl + "/emden/_search", searchString);
+			resultString = rest.post(esUrl + "/" + SourceSetup.getSourceCSV() + "/_search", searchString);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return new ResultList(new Result[] {}, "0", "0");
@@ -199,7 +215,7 @@ public class ElasticsearchWrapper implements SearchWrapper {
 	@Override
 	public Pusher pushResults(String index) {
 		try {
-			return new Pusher(esUrl + "/emden/" + index + "/_bulk");
+			return new ElasticSearchPusher(index, this);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

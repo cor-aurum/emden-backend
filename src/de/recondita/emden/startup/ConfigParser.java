@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Settings;
 import de.recondita.emden.data.input.CSVCrawler;
+import de.recondita.emden.data.input.SourceSetup;
 
 /**
  * Parses the Config, given as XML
@@ -87,6 +88,7 @@ public class ConfigParser {
 	private void parseCSV(NodeList csv, NamedNodeMap namedNodeMap) throws SchedulerException {
 		String path = namedNodeMap.getNamedItem("path").getNodeValue();
 		String id = namedNodeMap.getNamedItem("id").getNodeValue();
+		SourceSetup.setSource(id);
 		String firstRowHeader = namedNodeMap.getNamedItem("firstRowHeader").getNodeValue();
 		String separator = namedNodeMap.getNamedItem("separator").getNodeValue();
 		String cron = Settings.getInstance().getProperty("default.cron");

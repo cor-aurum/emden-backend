@@ -34,6 +34,7 @@ public final class Settings {
 		defaults.setProperty("max.searchresults", "25");
 		defaults.setProperty("default.cron", "0 4 * * * ?");
 		defaults.setProperty("http.blocksize", "100000");
+		defaults.setProperty("index.basename", "emden");
 		properties = new Properties(defaults);
 		FileInputStream in;
 		try {
