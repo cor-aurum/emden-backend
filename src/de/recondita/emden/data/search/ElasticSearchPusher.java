@@ -23,13 +23,23 @@ public class ElasticSearchPusher implements Pusher {
 	private final static String INDEX = "{\"index\":{}}\n";
 	private final static String LINEBREAK = "\n";
 	private int zaehler = 0;
-	private int BLOCK_SIZE;
+	private int blockSize;
 	private final URL u;
 	private final RESTHandler rest = new RESTHandler();
 	private ArrayList<Thread> pool = new ArrayList<Thread>();
 	private final ElasticsearchWrapper searchWrapper;
 	private final String index;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param index
+	 *            Index to push onto
+	 * @param searchWrapper
+	 *            Searchwrapper for renaming the Index
+	 * @throws IOException
+	 *             something went terribly wrong
+	 */
 	public ElasticSearchPusher(String index, ElasticsearchWrapper searchWrapper) throws IOException {
 		String url = Settings.getInstance().getProperty("elasticsearch.url") + "/"
 				+ Settings.getInstance().getProperty("index.basename") + index.toLowerCase() + SourceSetup.APPENDIX;
@@ -37,7 +47,7 @@ public class ElasticSearchPusher implements Pusher {
 		rest.delete(url);
 		this.searchWrapper = searchWrapper;
 		this.index = index.toLowerCase();
-		BLOCK_SIZE = Integer.parseInt(Settings.getInstance().getProperty("http.blocksize"));
+		blockSize = Integer.parseInt(Settings.getInstance().getProperty("http.blocksize"));
 	}
 
 	/**
@@ -45,15 +55,17 @@ public class ElasticSearchPusher implements Pusher {
 	 * 
 	 * @param stream
 	 *            Stream to flush
-	 * @return responsecode
+	 * @return responsecode HTTP Response
 	 * @throws IOException
 	 */
 	private int flush(HttpURLConnection oldcon) throws IOException {
 		oldcon.getOutputStream().flush();
 		oldcon.getOutputStream().close();
 		BufferedReader in = new BufferedReader(new InputStreamReader(oldcon.getInputStream()));
-		while ((in.readLine()) != null)
-			;
+		String line;
+		do {
+			line = in.readLine();
+		} while (line != null);
 
 		in.close();
 		return oldcon.getResponseCode();
@@ -78,6 +90,14 @@ public class ElasticSearchPusher implements Pusher {
 		t.start();
 	}
 
+	@Override
+	public void send() throws IOException {
+		sendPartialData();
+		join();
+		searchWrapper.renameIndex(Settings.getInstance().getProperty("index.basename") + index + SourceSetup.APPENDIX,
+				Settings.getInstance().getProperty("index.basename") + index, zaehler);
+	}
+
 	private void join() {
 		for (Thread t : pool) {
 			try {
@@ -97,19 +117,11 @@ public class ElasticSearchPusher implements Pusher {
 	}
 
 	@Override
-	public void send() throws IOException {
-		sendPartialData();
-		join();
-		searchWrapper.renameIndex(Settings.getInstance().getProperty("index.basename") + index + SourceSetup.APPENDIX,
-				Settings.getInstance().getProperty("index.basename") + index,zaehler);
-	}
-
-	@Override
 	public synchronized void writeJsonString(String json) throws IOException {
 		builder.append(INDEX);
 		builder.append(json);
 		builder.append(LINEBREAK);
-		if (zaehler % BLOCK_SIZE==0) {
+		if (zaehler % blockSize == 0) {
 			sendPartialData();
 		}
 

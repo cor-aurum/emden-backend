@@ -35,6 +35,7 @@ public final class Settings {
 		defaults.setProperty("default.cron", "0 4 * * * ?");
 		defaults.setProperty("http.blocksize", "100000");
 		defaults.setProperty("index.basename", "emden");
+		defaults.setProperty("sql.supportShortlist", "false");
 		properties = new Properties(defaults);
 		FileInputStream in;
 		try {

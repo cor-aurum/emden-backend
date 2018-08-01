@@ -1,4 +1,4 @@
-package de.recondita.emden.data.input;
+package de.recondita.emden.data.input.csv;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,6 +9,7 @@ import java.io.IOException;
 import de.recondita.emden.data.DataField;
 import de.recondita.emden.data.DataFieldSetup;
 import de.recondita.emden.data.Result;
+import de.recondita.emden.data.input.CronCrawler;
 import de.recondita.emden.data.search.Pusher;
 import de.recondita.emden.data.search.SearchWrapper;
 
@@ -51,13 +52,13 @@ public class CSVCrawler implements CronCrawler {
 
 	@Override
 	public void pushResults(SearchWrapper search) {
+		System.out.println("CSV Crawler");
 		long aktTime = System.currentTimeMillis();
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(csv));
 			boolean firstLine = true;
 			String line = null;
-			// sBuffer.append("{\"delete\":{}}\n");
 
 			// Declare Reusable Objects here, for Performance Reasons
 			String[] d = DataFieldSetup.getDatafields();

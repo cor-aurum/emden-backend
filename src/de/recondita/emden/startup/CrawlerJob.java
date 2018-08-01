@@ -1,10 +1,10 @@
 package de.recondita.emden.startup;
 
-import org.quartz.DisallowConcurrentExecution;
+import java.util.HashSet;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 
 import de.recondita.emden.data.input.CronCrawler;
 import de.recondita.emden.data.search.ElasticsearchWrapper;
@@ -15,16 +15,27 @@ import de.recondita.emden.data.search.ElasticsearchWrapper;
  * @author felix
  *
  */
-@DisallowConcurrentExecution
 public class CrawlerJob implements Job {
+
+	private static HashSet<String> registrations = new HashSet<>();
+
 	@Override
-	public void execute(JobExecutionContext ctx) throws JobExecutionException {
+	public synchronized void execute(JobExecutionContext ctx) throws JobExecutionException {
 		System.out.println("Cron Execution started");
-		try {
-			CronCrawler c = (CronCrawler) ctx.getScheduler().getContext().get("crawler");
+		// CronCrawler c = (CronCrawler) ctx.getScheduler().getContext().get("crawler");
+		CronCrawler c = (CronCrawler) ctx.getJobDetail().getJobDataMap().get("crawler");
+		System.out.println("Try to register " + c.getType());
+		if (register(c.getType())) {
+			System.out.println(c.getType() + " registered");
 			c.pushResults(new ElasticsearchWrapper());
-		} catch (SchedulerException e) {
-			e.printStackTrace();
+			registrations.remove(c.getType());
 		}
+	}
+
+	private synchronized boolean register(String id) {
+		if (registrations.contains(id))
+			return false;
+		registrations.add(id);
+		return true;
 	}
 }

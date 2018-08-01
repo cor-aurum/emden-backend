@@ -11,6 +11,10 @@ import de.recondita.emden.data.Settings;
 public final class SourceSetup {
 
 	private static String sources = "";
+	/**
+	 * Name of the String Appendix, which is set behind a temporary Index to not
+	 * conflict with the main Index
+	 */
 	public final static String APPENDIX = "temp";
 
 	/**
@@ -28,7 +32,7 @@ public final class SourceSetup {
 	public synchronized static void setSource(String source) {
 		if (!sources.isEmpty())
 			sources += ",";
-		sources += Settings.getInstance().getProperty("index.basename")+source.toLowerCase();
+		sources += Settings.getInstance().getProperty("index.basename") + source.toLowerCase();
 	}
 
 	/**
@@ -38,8 +42,8 @@ public final class SourceSetup {
 	 *            index
 	 */
 	public static void doBackup(String source) {
-		sources=sources.replaceAll(source, source + APPENDIX);
-		System.out.println("Sources: "+sources);
+		sources = sources.replaceAll(source, source + APPENDIX);
+		System.out.println("Sources: " + sources);
 	}
 
 	/**
@@ -49,8 +53,8 @@ public final class SourceSetup {
 	 *            index
 	 */
 	public static void undoBackup(String source) {
-		sources=sources.replaceAll(source+APPENDIX, source);
-		System.out.println("Sources: "+sources);
+		sources = sources.replaceAll(source + APPENDIX, source);
+		System.out.println("Sources: " + sources);
 	}
 
 	/**

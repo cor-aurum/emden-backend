@@ -7,6 +7,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Class to Handle HTTP Connections
+ * 
+ * @author felix
+ *
+ */
 public class RESTHandler {
 
 	/**
@@ -69,9 +75,24 @@ public class RESTHandler {
 	 */
 	public void delete(String url) throws IOException {
 		URL u = new URL(url);
-		System.out.println("Delete "+url);
+		System.out.println("Delete " + url);
 		HttpURLConnection con = initNewConnection(u, "DELETE");
 		System.out.println("Deleted: " + con.getResponseCode());
+	}
+
+	/**
+	 * Puts a resource
+	 * 
+	 * @param url
+	 *            url to put
+	 * @throws IOException
+	 *             Exception
+	 */
+	public void put(String url) throws IOException {
+		URL u = new URL(url);
+		System.out.println("Put " + url);
+		HttpURLConnection con = initNewConnection(u, "PUT");
+		System.out.println("Putted: " + con.getResponseCode());
 	}
 
 	/**
@@ -79,8 +100,6 @@ public class RESTHandler {
 	 * 
 	 * @param u
 	 *            URL to connect
-	 * @param method
-	 *            HTTP MEthod
 	 * @return Connection
 	 * @throws IOException
 	 *             Something went wrong
@@ -120,8 +139,10 @@ public class RESTHandler {
 		try {
 			HttpURLConnection con = initNewConnection(new URL(url), "GET");
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			while ((in.readLine()) != null)
-				;
+			String line;
+			do {
+				line = in.readLine();
+			} while (line != null);
 
 			in.close();
 			int ret = con.getResponseCode();

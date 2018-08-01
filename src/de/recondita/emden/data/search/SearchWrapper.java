@@ -32,7 +32,9 @@ public interface SearchWrapper {
 
 	/**
 	 * A bulk push
-	 * @param index index to push on
+	 * 
+	 * @param index
+	 *            index to push on
 	 * @return Pusherobject
 	 */
 	Pusher pushResults(String index);
@@ -48,4 +50,12 @@ public interface SearchWrapper {
 	 * @return Resultlist
 	 */
 	ResultList advancedSearch(String[] query, boolean exact);
+
+	/**
+	 * Creates a empty Index
+	 * 
+	 * @param id
+	 *            name of the Index
+	 */
+	void createIndex(String id);
 }

@@ -12,7 +12,7 @@ import de.recondita.emden.data.search.SearchWrapper;
 public interface CronCrawler extends Serializable {
 
 	/**
-	 * Pushs the Results to a SearchWrapper (ElasticSearch)
+	 * Crawls fresh and pushs the Results to a SearchWrapper (ElasticSearch)
 	 * 
 	 * @param search
 	 *            SearchWrapper to Push to

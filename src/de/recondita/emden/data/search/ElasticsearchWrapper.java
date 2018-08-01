@@ -150,9 +150,9 @@ public class ElasticsearchWrapper implements SearchWrapper {
 
 	private boolean checkCount(String index, int expected) {
 		ResultList r = simpleSearch("*", index);
-		int t=Integer.parseInt(r.getCount());
+		int t = Integer.parseInt(r.getCount());
 
-		return t>=expected;
+		return t >= expected;
 	}
 
 	/**
@@ -217,9 +217,19 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		try {
 			return new ElasticSearchPusher(index, this);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public void createIndex(String id) {
+		String url = Settings.getInstance().getProperty("elasticsearch.url") + "/" + id;
+		try {
+			if (!rest.existsEndpoint(url))
+				rest.put(url);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

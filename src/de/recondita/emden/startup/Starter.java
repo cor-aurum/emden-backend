@@ -21,10 +21,8 @@ public class Starter {
 	 */
 	@PostConstruct
 	void init() {
+		Cron.initSched();
 		new ConfigParser(PathProvider.getInstance().getConfig());
-		// CSVCrawler c=new CSVCrawler(new File("/home/felix/Downloads/convertcsv.csv"),
-		// ",", true, new String[] {"Title","Text"});
-		// c.pushResults(new ElasticsearchWrapper());
 	}
 
 }

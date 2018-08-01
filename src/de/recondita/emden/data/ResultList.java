@@ -70,6 +70,11 @@ public class ResultList {
 		return count;
 	}
 
+	/**
+	 * Gets the Results as array
+	 * 
+	 * @return results
+	 */
 	public Result[] getResults() {
 		return results;
 	}

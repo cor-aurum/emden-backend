@@ -43,7 +43,7 @@ public class Result {
 	}
 
 	/**
-	 * Gets the Data from the reult as JSON
+	 * Gets the Data from the result as JSON
 	 * 
 	 * @return Json
 	 */
@@ -56,7 +56,7 @@ public class Result {
 	}
 
 	/**
-	 * Gives the DatFields as a corresponding Array
+	 * Gives the DataFields as a corresponding Array
 	 * 
 	 * @return datafieldarray
 	 */
