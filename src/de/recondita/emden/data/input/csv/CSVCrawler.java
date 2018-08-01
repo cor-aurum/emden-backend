@@ -75,7 +75,6 @@ public class CSVCrawler implements CronCrawler {
 					continue;
 				}
 				firstLine = false;
-				// dataField = new DataField[data.length];
 				i = 0;
 				for (String s : d) {
 					try {
@@ -89,7 +88,7 @@ public class CSVCrawler implements CronCrawler {
 				pusher.writeJsonString(new Result(dataField).getData().toString());
 			}
 			pusher.send();
-			System.out.println("Benötigte Zeit: " + ((System.currentTimeMillis() - aktTime) / 1000) + "s");
+			System.out.println("Time took to import CSV: " + ((System.currentTimeMillis() - aktTime) / 1000) + "s");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

@@ -79,7 +79,7 @@ public class ElasticSearchPusher implements Pusher {
 					byte[] payload = bulk.getBytes(StandardCharsets.UTF_8);
 					con.setFixedLengthStreamingMode(payload.length);
 					con.getOutputStream().write(payload);
-					System.out.println("Block send with Status Code: " + flush(con));
+					flush(con);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
