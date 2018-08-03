@@ -30,6 +30,8 @@ public final class PathProvider {
 	private PathProvider() {
 		String root = System.getenv("EMDEN");
 		if (root == null || root.isEmpty())
+			root = "/etc/emden";
+		if (!new File(root).exists())
 			throw new RuntimeException("no config dir found. Please set $EMDEN");
 		logo = new File(root + File.separator + "res" + File.separator + "logo.png");
 		properties = new File(root + File.separator + "config" + File.separator + "settings.properties");
