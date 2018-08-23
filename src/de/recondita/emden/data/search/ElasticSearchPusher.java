@@ -1,12 +1,10 @@
 package de.recondita.emden.data.search;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import de.recondita.emden.data.RESTHandler;
 import de.recondita.emden.data.Settings;
@@ -26,7 +24,7 @@ public class ElasticSearchPusher implements Pusher {
 	private int blockSize;
 	private final URL u;
 	private final RESTHandler rest = new RESTHandler();
-	private ArrayList<Thread> pool = new ArrayList<Thread>();
+	private ExecutorService pool;
 	private final ElasticsearchWrapper searchWrapper;
 	private final String index;
 
@@ -48,63 +46,44 @@ public class ElasticSearchPusher implements Pusher {
 		this.searchWrapper = searchWrapper;
 		this.index = index.toLowerCase();
 		blockSize = Integer.parseInt(Settings.getInstance().getProperty("http.blocksize"));
-	}
-
-	/**
-	 * Finishes the stream
-	 * 
-	 * @param stream
-	 *            Stream to flush
-	 * @return responsecode HTTP Response
-	 * @throws IOException
-	 */
-	private int flush(HttpURLConnection oldcon) throws IOException {
-		oldcon.getOutputStream().flush();
-		oldcon.getOutputStream().close();
-		BufferedReader in = new BufferedReader(new InputStreamReader(oldcon.getInputStream()));
-		String line;
-		do {
-			line = in.readLine();
-		} while (line != null);
-
-		in.close();
-		return oldcon.getResponseCode();
+		int poolsize = Integer.parseInt(Settings.getInstance().getProperty("http.blockcount"));
+		pool = Executors.newFixedThreadPool(poolsize);
 	}
 
 	private void send(final String bulk) {
-		Thread t = new Thread() {
+		final int zaehlerAkt = zaehler;
+		pool.execute(new Runnable() {
 			public void run() {
 				try {
-					HttpURLConnection con = rest.initNewConnection(u);
-					byte[] payload = bulk.getBytes(StandardCharsets.UTF_8);
-					con.setFixedLengthStreamingMode(payload.length);
-					con.getOutputStream().write(payload);
-					flush(con);
+					rest.post(u, bulk);
+					System.out.println("Number of uploaded entries for Index "
+							+ Settings.getInstance().getProperty("index.basename") + index + SourceSetup.APPENDIX + ": "
+							+ zaehlerAkt);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
 			}
-		};
-		pool.add(t);
-		t.start();
+
+		});
 	}
 
 	@Override
 	public void send() throws IOException {
 		sendPartialData();
+		System.out.println("Uploading complete. " + zaehler + " entries in Index " + index);
 		join();
 		searchWrapper.renameIndex(Settings.getInstance().getProperty("index.basename") + index + SourceSetup.APPENDIX,
 				Settings.getInstance().getProperty("index.basename") + index, zaehler);
 	}
 
 	private void join() {
-		for (Thread t : pool) {
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		try {
+			pool.shutdown();
+			if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
+				System.err.println("Upload Timed Out!");
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -121,11 +100,22 @@ public class ElasticSearchPusher implements Pusher {
 		builder.append(INDEX);
 		builder.append(json);
 		builder.append(LINEBREAK);
+		zaehler++;
 		if (zaehler % blockSize == 0) {
 			sendPartialData();
+			if (zaehler % 1000000 == 0) {
+				while (!searchWrapper.checkCount(
+						Settings.getInstance().getProperty("index.basename") + index + SourceSetup.APPENDIX, zaehler)) {
+					try {
+						System.out.println("Wait for Elasticsearch to index. Next try in five seconds");
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 
-		zaehler++;
 	}
 
 }

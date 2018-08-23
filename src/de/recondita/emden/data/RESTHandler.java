@@ -27,20 +27,38 @@ public class RESTHandler {
 	 *             if something went wrong
 	 */
 	public String post(String url, String json) throws IOException {
-		byte[] payload = json.getBytes(StandardCharsets.UTF_8);
 		URL u = new URL(url);
+		return post(u, json);
+	}
+
+	/**
+	 * Handles a HTTP Post with a json body
+	 * 
+	 * @param u
+	 *            URL of the Resource
+	 * @param json
+	 *            Body
+	 * @return Response
+	 * @throws IOException
+	 *             if something went wrong
+	 */
+	public String post(URL u, String json) throws IOException {
+		byte[] payload = json.getBytes(StandardCharsets.UTF_8);
 		HttpURLConnection con = initNewConnection(u);
 		con.setFixedLengthStreamingMode(payload.length);
 		con.getOutputStream().write(payload);
-		System.out.println(con.getResponseCode());
-		System.out.println(con.getResponseMessage());
+		int resp = con.getResponseCode();
+		if (resp < 200 || resp > 300) {
+			String m = con.getResponseMessage();
+			System.err.println(resp + ": " + m);
+			throw new IOException(resp + ": " + m);
+		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String input;
 		StringBuffer response = new StringBuffer();
 		while ((input = in.readLine()) != null)
 			response.append(input);
 		in.close();
-		System.out.println(response.toString());
 		return response.toString();
 	}
 

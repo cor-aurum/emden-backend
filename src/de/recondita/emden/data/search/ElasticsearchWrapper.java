@@ -148,7 +148,16 @@ public class ElasticsearchWrapper implements SearchWrapper {
 		return builder.build().toString();
 	}
 
-	private boolean checkCount(String index, int expected) {
+	/**
+	 * Checks, if Elasticsearch ha indexed all uploaded Data
+	 * 
+	 * @param index
+	 *            index to check
+	 * @param expected
+	 *            Expected count of Data
+	 * @return fully indexed
+	 */
+	public boolean checkCount(String index, int expected) {
 		ResultList r = simpleSearch("*", index);
 		int t = Integer.parseInt(r.getCount());
 
@@ -178,6 +187,8 @@ public class ElasticsearchWrapper implements SearchWrapper {
 			while (!checkCount(oldIndexname, countOfOldIndex)) {
 				try {
 					Thread.sleep(2000);
+					System.out.println(oldIndexname + " doesn't contain all expected " + countOfOldIndex
+							+ " entries yet. Waiting...");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

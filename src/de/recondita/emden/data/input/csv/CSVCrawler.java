@@ -65,7 +65,7 @@ public class CSVCrawler implements CronCrawler {
 			String[] data;
 			DataField[] dataField = new DataField[d.length];
 			int i;
-			Pusher pusher= search.pushResults(id);
+			Pusher pusher = search.pushResults(id);
 			while ((line = br.readLine()) != null) {
 				if (line.isEmpty())
 					continue;
@@ -82,7 +82,6 @@ public class CSVCrawler implements CronCrawler {
 							dataField[i] = new DataField(s, data[rowsForDatafields[i]]);
 						i++;
 					} catch (Exception e) {
-						e.printStackTrace();
 					}
 				}
 				pusher.writeJsonString(new Result(dataField).getData().toString());
@@ -93,6 +92,9 @@ public class CSVCrawler implements CronCrawler {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (Error e) {
+			System.out.println("An Error occured. This is fatal!");
+			e.printStackTrace();
 		} finally {
 			try {
 				br.close();
@@ -100,6 +102,7 @@ public class CSVCrawler implements CronCrawler {
 				e.printStackTrace();
 			}
 		}
+
 	}
 
 	@Override

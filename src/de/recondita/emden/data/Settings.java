@@ -32,8 +32,9 @@ public final class Settings {
 		defaults = new Properties();
 		defaults.setProperty("elasticsearch.url", "http://localhost:9200");
 		defaults.setProperty("max.searchresults", "25");
-		defaults.setProperty("default.cron", "0 4 * * * ?");
+		defaults.setProperty("default.cron", "0 0 4  * * ?");
 		defaults.setProperty("http.blocksize", "100000");
+		defaults.setProperty("http.blockcount", "10");
 		defaults.setProperty("index.basename", "emden");
 		defaults.setProperty("sql.supportShortlist", "false");
 		properties = new Properties(defaults);

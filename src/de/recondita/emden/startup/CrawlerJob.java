@@ -29,7 +29,9 @@ public class CrawlerJob implements Job {
 			System.out.println(c.getType() + " registered");
 			c.pushResults(new ElasticsearchWrapper());
 			registrations.remove(c.getType());
-		}
+		} else
+			System.out
+					.println("Registration failed. " + c.getType() + " already registered and shall still be running");
 	}
 
 	private synchronized boolean register(String id) {
